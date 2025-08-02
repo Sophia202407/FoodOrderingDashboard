@@ -25,11 +25,9 @@
    ```bash
    git clone https://github.com/yourusername/foodApp.git
    cd foodApp
-   
 2. **Install dependencies**
    ```bash
    npm install
-   
 3. **Environment Setup**
    ```text
    // Create .env file
@@ -37,7 +35,6 @@
    REDIS_URL=your_redis_connection
    KAFKA_HOST=your_kafka_host
    PORT=3000
-   
 4. **Run the application**
     ```bash
     npm start
