@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Ordering Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-left: 5px solid transparent;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card.orders { border-left-color: #4CAF50; }
+        .stat-card.revenue { border-left-color: #FF9800; }
+        .stat-card.items { border-left-color: #2196F3; }
+        .stat-card.customers { border-left-color: #9C27B0; }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .panel h2 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .menu-item {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .menu-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+            border-color: #667eea;
+        }
+
+        .menu-item.selected {
+            border-color: #4CAF50;
+            background: #f8fff8;
+        }
+
+        .menu-item h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .menu-price {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4CAF50;
+            margin-bottom: 15px;
+        }
+
+        .quantity-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .qty-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: background 0.3s ease;
+        }
+
+        .qty-btn:hover {
+            background: #5a67d8;
+        }
+
+        .qty-display {
+            font-size: 1.2rem;
+            font-weight: bold;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .top-items-list {
+            list-style: none;
+        }
+
+        .top-items-list li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f8f9ff;
+            border-radius: 10px;
+            transition: background 0.3s ease;
+        }
+
+        .top-items-list li:hover {
+            background: #e6ecff;
+        }
+
+        .item-rank {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .rank-1 { background: #FFD700; }
+        .rank-2 { background: #C0C0C0; }
+        .rank-3 { background: #CD7F32; }
+        .rank-other { background: #667eea; }
+
+        .item-info {
+            flex: 1;
+            margin-left: 15px;
+        }
+
+        .item-name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .item-score {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .orders-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .order-item {
+            background: #f8f9ff;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .order-id {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .order-time {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .order-customer {
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .order-form {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-small {
+            width: auto;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            margin-left: 10px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+        }
+
+        .refresh-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+            transition: transform 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .simple-order-form {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 2px solid #667eea;
+        }
+
+        .simple-order-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 100px 120px;
+            gap: 15px;
+            align-items: end;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .menu-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-bar {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .simple-order-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header, .panel, .order-form {
+                padding: 20px;
+            }
+            
+            .stats-bar {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Food Ordering Dashboard</h1>
+            <p>Real-time menu, orders, and popularity tracking powered by Express + MongoDB + Redis + Kafka</p>
+        </div>
+
+        <div class="stats-bar">
+            <div class="stat-card orders">
+                <div class="stat-number" id="totalOrders">0</div>
+                <div class="stat-label">Total Orders</div>
+            </div>
+            <div class="stat-card revenue">
+                <div class="stat-number" id="totalRevenue">$0</div>
+                <div class="stat-label">Revenue</div>
+            </div>
+            <div class="stat-card items">
+                <div class="stat-number" id="menuItems">0</div>
+                <div class="stat-label">Menu Items</div>
+            </div>
+            <div class="stat-card customers">
+                <div class="stat-number" id="totalCustomers">0</div>
+                <div class="stat-label">Customers</div>
+            </div>
+        </div>
+
+        <!-- Simple Order Form (matches your API format) -->
+        <div class="simple-order-form">
+            <h2>🚀 Quick Order (API Format)</h2>
+            <div id="simpleOrderMessage"></div>
+            <form id="simpleOrderForm">
+                <div class="simple-order-grid">
+                    <div class="form-group">
+                        <label for="simpleCustomer">Customer Name:</label>
+                        <input type="text" id="simpleCustomer" required placeholder="Enter customer name">
+                    </div>
+                    <div class="form-group">
+                        <label for="simpleItem">Item:</label>
+                        <select id="simpleItem" required>
+                            <option value="">Select item...</option>
+                            <option value="Pizza">🍕 Pizza</option>
+                            <option value="Burger">🍔 Burger</option>
+                            <option value="Sushi">🍣 Sushi</option>
+                            <option value="Pasta">🍝 Pasta</option>
+                            <option value="Salad">🥗 Salad</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="simpleQuantity">Quantity:</label>
+                        <input type="number" id="simpleQuantity" min="1" value="1" required>
+                    </div>
+                    <button type="submit" class="btn btn-small" id="simpleOrderBtn">
+                        Place Order
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="order-form">
+            <h2>🛒 Advanced Order (Multi-Item)</h2>
+            <div id="orderMessage"></div>
+            <form id="orderForm">
+                <div class="form-group">
+                    <label for="customerName">Customer Name:</label>
+                    <input type="text" id="customerName" required placeholder="Enter your name">
+                </div>
+                <div class="form-group">
+                    <label for="customerPhone">Phone Number:</label>
+                    <input type="tel" id="customerPhone" placeholder="Optional">
+                </div>
+                <button type="submit" class="btn" id="placeOrderBtn">
+                    🚀 Place Multi-Item Order
+                </button>
+            </form>
+        </div>
+
+        <div class="menu-grid" id="menuGrid">
+            <div class="menu-item">
+                <h3>🍕 Loading Menu...</h3>
+                <div class="menu-price">Please wait</div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="panel">
+                <h2>🏆 Top Items (Live from Redis)</h2>
+                <ul class="top-items-list" id="topItemsList">
+                    <li>Loading top items...</li>
+                </ul>
+            </div>
+
+            <div class="panel">
+                <h2>📋 Recent Orders</h2>
+                <div class="orders-list" id="ordersList">
+                    <div class="order-item">
+                        <div class="order-header">
+                            <span class="order-id">Loading orders...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="refresh-btn" onclick="refreshAllData()" title="Refresh Data">
+        🔄
+    </button>
+
+    <script>
+        const API_BASE = 'http://localhost:3000';
+        let selectedItems = {};
+        let orders = [];
+        let menuData = [];
+        let allOrders = [];
+
+        // Initialize the dashboard
+        async function initDashboard() {
+            await loadMenu();
+            await loadTopItems();
+            await loadOrders();
+            updateStats();
+            
+            // Auto-refresh every 10 seconds
+            setInterval(() => {
+                loadTopItems();
+                loadOrders();
+            }, 10000);
+        }
+
+        // Load menu items from MongoDB
+        async function loadMenu() {
+            try {
+                const response = await fetch(`${API_BASE}/menus`);
+                if (response.ok) {
+                    menuData = await response.json();
+                    displayMenu(menuData);
+                } else {
+                    // Fallback menu
+                    menuData = [
+                        { _id: '1', name: 'Pizza', price: 15.99 },
+                        { _id: '2', name: 'Burger', price: 12.99 },
+                        { _id: '3', name: 'Sushi', price: 18.99 },
+                        { _id: '4', name: 'Pasta', price: 13.99 },
+                        { _id: '5', name: 'Salad', price: 9.99 }
+                    ];
+                    displayMenu(menuData);
+                }
+            } catch (error) {
+                console.error('Error loading menu:', error);
+                // Same fallback as above
+                menuData = [
+                    { _id: '1', name: 'Pizza', price: 15.99 },
+                    { _id: '2', name: 'Burger', price: 12.99 },
+                    { _id: '3', name: 'Sushi', price: 18.99 },
+                    { _id: '4', name: 'Pasta', price: 13.99 },
+                    { _id: '5', name: 'Salad', price: 9.99 }
+                ];
+                displayMenu(menuData);
+            }
+        }
+
+        // Display menu items
+        function displayMenu(items) {
+            const menuGrid = document.getElementById('menuGrid');
+            menuGrid.innerHTML = '';
+
+            items.forEach((item, index) => {
+                const itemId = item._id || item.id || index.toString();
+                const menuItem = document.createElement('div');
+                menuItem.className = 'menu-item';
+                menuItem.innerHTML = `
+                    <h3>${getItemEmoji(item.name)} ${item.name}</h3>
+                    <div class="menu-price">$${item.price.toFixed(2)}</div>
+                    <div class="quantity-selector">
+                        <button class="qty-btn" onclick="changeQuantity('${itemId}', -1)">-</button>
+                        <span class="qty-display" id="qty-${itemId}">0</span>
+                        <button class="qty-btn" onclick="changeQuantity('${itemId}', 1)">+</button>
+                    </div>
+                `;
+                menuGrid.appendChild(menuItem);
+                
+                selectedItems[itemId] = { ...item, quantity: 0, id: itemId };
+            });
+        }
+
+        // Get emoji for menu items
+        function getItemEmoji(name) {
+            const emojiMap = {
+                'pizza': '🍕', 'burger': '🍔', 'sushi': '🍣', 
+                'pasta': '🍝', 'salad': '🥗', 'sandwich': '🥪',
+                'taco': '🌮', 'ramen': '🍜', 'steak': '🥩'
+            };
+            
+            for (const [key, emoji] of Object.entries(emojiMap)) {
+                if (name.toLowerCase().includes(key)) return emoji;
+            }
+            return '🍽️';
+        }
+
+        // Change quantity
+        function changeQuantity(itemId, change) {
+            if (!selectedItems[itemId]) return;
+            
+            const currentQty = selectedItems[itemId].quantity;
+            const newQty = Math.max(0, currentQty + change);
+            
+            selectedItems[itemId].quantity = newQty;
+            const qtyDisplay = document.getElementById(`qty-${itemId}`);
+            if (qtyDisplay) {
+                qtyDisplay.textContent = newQty;
+                
+                // Update visual selection
+                const menuItem = qtyDisplay.closest('.menu-item');
+                if (newQty > 0) {
+                    menuItem.classList.add('selected');
+                } else {
+                    menuItem.classList.remove('selected');
+                }
+            }
+        }
+
+        // Load top items from Redis
+        async function loadTopItems() {
+            try {
+                const response = await fetch(`${API_BASE}/top-items`);
+                if (response.ok) {
+                    const topItems = await response.json();
+                    displayTopItems(topItems);
+                } else {
+                    displayTopItemsEmpty();
+                }
+            } catch (error) {
+                console.error('Error loading top items:', error);
+                displayTopItemsEmpty();
+            }
+        }
+
+        // Display top items
+        function displayTopItems(items) {
+            const topItemsList = document.getElementById('topItemsList');
+            topItemsList.innerHTML = '';
+
+            if (!items || items.length === 0) {
+                topItemsList.innerHTML = '<li>📊 No popularity data yet - place some orders!</li>';
+                return;
+            }
+
+            items.forEach((item, index) => {
+                const rank = index + 1;
+                const rankClass = rank <= 3 ? `rank-${rank}` : 'rank-other';
+                const emoji = getItemEmoji(item.item);
+                
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `
+                    <div class="item-rank ${rankClass}">${rank}</div>
+                    <div class="item-info">
+                        <div class="item-name">${emoji} ${item.item}</div>
+                        <div class="item-score">${item.score} orders</div>
+                    </div>
+                `;
+                topItemsList.appendChild(listItem);
+            });
+        }
+
+        // Display empty top items
+        function displayTopItemsEmpty() {
+            document.getElementById('topItemsList').innerHTML = 
+                '<li>📊 No popularity data yet - place some orders!</li>';
+        }
+
+        // Load recent orders
+        async function loadOrders() {
+            try {
+                const response = await fetch(`${API_BASE}/orders`);
+                if (response.ok) {
+                    const ordersData = await response.json();
+                    allOrders = Array.isArray(ordersData) ? ordersData : [];
+                    orders = allOrders.slice(0, 10);
+                    displayOrders(orders);
+                    updateStats();
+                } else {
+                    displayOrdersEmpty();
+                }
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                displayOrdersEmpty();
+            }
+        }
+
+        // Display orders
+        function displayOrders(orderList) {
+            const ordersList = document.getElementById('ordersList');
+            ordersList.innerHTML = '';
+
+            if (orderList.length === 0) {
+                ordersList.innerHTML = '<div class="order-item">📦 No orders yet - place your first order!</div>';
+                return;
+            }
+
+            orderList.forEach(order => {
+                const orderItem = document.createElement('div');
+                orderItem.className = 'order-item';
+                
+                const orderId = order.orderId || order._id || 'N/A';
+                const customer = order.customer || 'Anonymous';
+                const timestamp = order.timestamp || order.createdAt || new Date();
+                
+                orderItem.innerHTML = `
+                    <div class="order-header">
+                        <span class="order-id">#${orderId}</span>
+                        <span class="order-time">${formatTime(timestamp)}</span>
+                    </div>
+                    <div class="order-customer">👤 ${customer}</div>
+                    <div class="order-items">
+                        ${formatOrderItems(order)}
+                    </div>
+                `;
+                ordersList.appendChild(orderItem);
+            });
+        }
+
+        // Display empty orders state
+        function displayOrdersEmpty() {
+            document.getElementById('ordersList').innerHTML = 
+                '<div class="order-item">📦 No orders yet - place your first order!</div>';
+        }
+
+        // Format order items
+        function formatOrderItems(order) {
+            if (order.items && Array.isArray(order.items)) {
+                return order.items.map(item => 
+                    `${getItemEmoji(item.name)} ${item.name} x${item.quantity}`
+                ).join(', ');
+            } else if (order.item && order.quantity) {
+                return `${getItemEmoji(order.item)} ${order.item} x${order.quantity}`;
+            }
+            return 'Order details unavailable';
+        }
+
+        // Format time
+        function formatTime(timestamp) {
+            if (!timestamp) return 'Unknown time';
+            const date = new Date(timestamp);
+            return isNaN(date.getTime()) ? 'Unknown time' : date.toLocaleTimeString();
+        }
+
+        // Update statistics
+        function updateStats() {
+            // Calculate total orders
+            document.getElementById('totalOrders').textContent = allOrders.length;
+            
+            // Calculate total revenue
+            const revenue = allOrders.reduce((total, order) => {
+                if (order.items && Array.isArray(order.items)) {
+                    return total + order.items.reduce((sum, item) => {
+                        const menuItem = menuData.find(m => m.name.toLowerCase() === item.name.toLowerCase());
+                        return sum + (menuItem ? menuItem.price * item.quantity : 0);
+                    }, 0);
+                } else if (order.item && order.quantity) {
+                    const menuItem = menuData.find(m => m.name.toLowerCase() === order.item.toLowerCase());
+                    return total + (menuItem ? menuItem.price * order.quantity : 0);
+                }
+                return total;
+            }, 0);
+            document.getElementById('totalRevenue').textContent = `$${revenue.toFixed(2)}`;
+            
+            // Menu items count
+            document.getElementById('menuItems').textContent = menuData.length;
+            
+            // Unique customers count
+            const uniqueCustomers = new Set(allOrders.map(order => 
+                order.customer || 'Anonymous'
+            ));
+            document.getElementById('totalCustomers').textContent = uniqueCustomers.size;
+        }
+
+        // Show message
+        function showMessage(message, type, elementId) {
+            const messageDiv = document.getElementById(elementId);
+            messageDiv.innerHTML = `<div class="${type}-message">${message}</div>`;
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+            }, 5000);
+        }
+
+        // Handle simple order form submission
+        document.getElementById('simpleOrderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const customer = document.getElementById('simpleCustomer').value;
+            const item = document.getElementById('simpleItem').value;
+            const quantity = parseInt(document.getElementById('simpleQuantity').value);
+            const orderBtn = document.getElementById('simpleOrderBtn');
+            const messageDiv = document.getElementById('simpleOrderMessage');
+            
+            const orderData = {
+                item: item,
+                quantity: quantity,
+                customer: customer
+            };
+            
+            orderBtn.disabled = true;
+            orderBtn.innerHTML = '<span class="loading"></span> Ordering...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/order`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showMessage(`🎉 Order placed! Order ID: ${result.orderId}`, 'success', 'simpleOrderMessage');
+                    document.getElementById('simpleOrderForm').reset();
+                    document.getElementById('simpleQuantity').value = '1';
+                    
+                    // Add the new order to our local array
+                    allOrders.unshift({
+                        orderId: result.orderId,
+                        customer: customer,
+                        items: [{
+                            name: item,
+                            quantity: quantity
+                        }],
+                        timestamp: new Date()
+                    });
+                    
+                    // Immediately update stats and UI
+                    updateStats();
+                    displayOrders(allOrders.slice(0, 10));
+                    
+                    // Refresh top items after a delay
+                    setTimeout(() => {
+                        loadTopItems();
+                    }, 1000);
+                } else {
+                    showMessage(`❌ Error: ${result.error || 'Unknown error'}`, 'error', 'simpleOrderMessage');
+                }
+            } catch (error) {
+                console.error('Order submission error:', error);
+                showMessage('❌ Network error. Please check if the server is running!', 'error', 'simpleOrderMessage');
+            } finally {
+                orderBtn.disabled = false;
+                orderBtn.innerHTML = 'Place Order';
+            }
+        });
+
+        // Handle multi-item order form submission
+        document.getElementById('orderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const customer = document.getElementById('customerName').value;
+            const phone = document.getElementById('customerPhone').value;
+            const orderBtn = document.getElementById('placeOrderBtn');
+            const messageDiv = document.getElementById('orderMessage');
+            
+            // Get selected items
+            const items = Object.values(selectedItems)
+                .filter(item => item.quantity > 0)
+                .map(item => ({
+                    name: item.name,
+                    quantity: item.quantity
+                }));
+            
+            if (items.length === 0) {
+                showMessage('❌ Please select at least one item', 'error', 'orderMessage');
+                return;
+            }
+            
+            const orderData = {
+                customer: customer,
+                phone: phone,
+                items: items
+            };
+            
+            orderBtn.disabled = true;
+            orderBtn.innerHTML = '<span class="loading"></span> Processing...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/order`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showMessage(`🎉 Order placed! Order ID: ${result.orderId}`, 'success', 'orderMessage');
+                    document.getElementById('orderForm').reset();
+                    
+                    // Reset quantities
+                    Object.keys(selectedItems).forEach(itemId => {
+                        selectedItems[itemId].quantity = 0;
+                        const qtyDisplay = document.getElementById(`qty-${itemId}`);
+                        if (qtyDisplay) {
+                            qtyDisplay.textContent = '0';
+                            qtyDisplay.closest('.menu-item').classList.remove('selected');
+                        }
+                    });
+                    
+                    // Add the new order to our local array
+                    allOrders.unshift({
+                        orderId: result.orderId,
+                        customer: customer,
+                        items: items,
+                        timestamp: new Date()
+                    });
+                    
+                    // Immediately update stats and UI
+                    updateStats();
+                    displayOrders(allOrders.slice(0, 10));
+                    
+                    // Refresh top items after a delay
+                    setTimeout(() => {
+                        loadTopItems();
+                    }, 1000);
+                } else {
+                    showMessage(`❌ Error: ${result.error || 'Unknown error'}`, 'error', 'orderMessage');
+                }
+            } catch (error) {
+                console.error('Order submission error:', error);
+                showMessage('❌ Network error. Please check if the server is running!', 'error', 'orderMessage');
+            } finally {
+                orderBtn.disabled = false;
+                orderBtn.innerHTML = '🚀 Place Multi-Item Order';
+            }
+        });
+
+        // Refresh all data
+        function refreshAllData() {
+            loadMenu();
+            loadTopItems();
+            loadOrders();
+        }
+
+        // Initialize the dashboard
+        document.addEventListener('DOMContentLoaded', initDashboard);
+    </script>
+</body>
+</html>
